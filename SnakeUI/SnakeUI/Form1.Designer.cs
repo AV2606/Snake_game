@@ -75,6 +75,7 @@
             this.Bot_Game_btn.AutoSize = true;
             this.Bot_Game_btn.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.Bot_Game_btn.BackColor = System.Drawing.Color.Blue;
+            this.Bot_Game_btn.Enabled = false;
             this.Bot_Game_btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.Bot_Game_btn.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Bot_Game_btn.ForeColor = System.Drawing.Color.White;
@@ -84,6 +85,7 @@
             this.Bot_Game_btn.TabIndex = 3;
             this.Bot_Game_btn.Text = "Bot Game";
             this.Bot_Game_btn.UseVisualStyleBackColor = false;
+            this.Bot_Game_btn.Visible = false;
             this.Bot_Game_btn.Click += new System.EventHandler(this.Bot_Game_btn_Click);
             // 
             // Buttons_layout
@@ -117,8 +119,10 @@
             this.Controls.Add(this.ColPanel);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.Form1_Shown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
             this.Buttons_layout.ResumeLayout(false);
             this.Buttons_layout.PerformLayout();
             this.ResumeLayout(false);

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Drawing;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using Snake;
 
@@ -20,6 +17,7 @@ namespace SnakeUI
         public static event EventHandler<Land> OnSnakeEats;
         public static event EventHandler<Land> OnSnakeMoves;
         public static event EventHandler<Map> OnGameInitialize;
+        public static event EventHandler GameFinished;
         public static bool GameRuning { get; private set; } = false;
         public static int interval
         {
@@ -51,6 +49,7 @@ namespace SnakeUI
                     BNOF = value;
             }
         }
+        private static Func<int,int>[] FC;
 
         private static int BNOF=1;
         private static int INTERVAL=250;
@@ -60,10 +59,11 @@ namespace SnakeUI
         /// </summary>
         /// <param name="Caller"></param>
         /// <param name="map"></param>
-        public static void Initialize(Form Caller,Map map)
+        public static void Initialize(Form Caller,Map map,Func<int,int>[] foodChanger=null)
         {
             if (GameRuning)
                 throw new InvalidOperationException("The Game Handle cant initialize when the game is running!");
+            FC = foodChanger;
             GameUI = Caller;
             GameHandle.map = map;
             snake = new Snake.Snake(map.GetRandomLand(1));
@@ -73,6 +73,9 @@ namespace SnakeUI
                 Game_Handle();
             });
             GameT.Start();
+            snake.OnSnakeMoves += (x,y)=> { OnSnakeMoves?.Invoke(snake, y); };
+            snake.OnSnakeEats += (s,l)=> { OnSnakeEats?.Invoke(snake, l); };
+            snake.SnakeHasCapturedTheWholeMap += (s,e)=>{ GameFinished?.Invoke(snake, e); };
             OnGameInitialize?.Invoke(Caller, map);
         }
         /// <summary>
@@ -98,7 +101,6 @@ namespace SnakeUI
             GameHandle.GameRuning = false;
             GameHandle.mapSize = Size.Empty;
             GameHandle.snake = null;
-
         }
         /// <summary>
         /// Changes the Direction the snake moves to and made him crawl.
@@ -108,13 +110,20 @@ namespace SnakeUI
         {
             snake.ChangeDirection(newDir, true);
         }
-
         private static void Game_Handle()
         {
             for (int i = 0; i < BNOF; i++)
                 map.AddFoodAtRandom();
             snake.OnSnakeEats += (s, land) =>
             {
+                if(!(FC is null))
+                foreach (var item in FC)
+                {
+                    int res = item(snake.Length);
+                        if (res > 0)
+                            for (int i = 0; i < res; i++) 
+                                map.AddFoodAtRandom();
+                }
                 map.AddFoodAtRandom();
             };
             try
@@ -142,9 +151,6 @@ namespace SnakeUI
                 Snake.Program.gamelog.AddLog("Ended the game because the snake went out of the map");
                 OnGameStops?.Invoke(e, Snake.Program.gamelog);
             }
-
-
         }
-
     }
 }

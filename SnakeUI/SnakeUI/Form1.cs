@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading;
+using System.Speech;
 using Snake;
 using System.Windows.Forms;
 
@@ -17,11 +15,29 @@ namespace SnakeUI
         Map decoyMap;
         public bool IsBotAlive = false;
         SnakeBot bot = null;
+        SizedQueue<char> BotCode = new SizedQueue<char>(7);
+        System.Speech.Synthesis.SpeechSynthesizer Speech = new System.Speech.Synthesis.SpeechSynthesizer { Volume = 100 };
+
         public Form1()
         {
             ///row left => right
             ///col top=>down
             InitializeComponent();
+            Speech.SelectVoiceByHints(System.Speech.Synthesis.VoiceGender.Female, System.Speech.Synthesis.VoiceAge.Teen);
+            Speech.SpeakAsync("Hi there");
+            BotCode.OnEnqueued += (sender, e) => {
+                var s = (SizedQueue<char>)sender;
+                string str = "";
+                foreach(char c in s.Value)
+                    str += c;
+                if (str.ToLower() == "botgame")
+                { 
+                    Bot_Game_btn.Visible = true;
+                    Bot_Game_btn.Enabled = true;
+                }
+
+            };
+            this.Text = "Snake";
             CheckForIllegalCrossThreadCalls = false;
             Start_btn.Click += start_Click;
             this.PreviewKeyDown += (sender, e) => {
@@ -59,46 +75,60 @@ namespace SnakeUI
                     };
                 }
             }
+            this.PreviewKeyDown += Preview_key_down;
+            this.KeyDown += Key_Down;
+            foreach(Control c in Buttons_layout.Controls)
+            {
+                c.PreviewKeyDown += Preview_key_down;
+                c.KeyDown += Key_Down;
+            }
             foreach (Control c in this.Controls)
             {
-                c.PreviewKeyDown += (sender, e) => {
-                    e.IsInputKey = true;
-                };
-                c.KeyDown += (sender, e) =>
-                {
-                    if (IsBotAlive)
-                        return;
-                    var snake = GameHandle.snake;
-                    if (snake is null)
-                        return;
-                    if (e.KeyData == Keys.A || e.KeyData == Keys.Left)
-                    {
-                        if (snake.HeadsTo == Directions.Left)
-                            return;
-                        GameHandle.ChangeDirection(Directions.Left);
-                    }///////////////////////////////////////////////////
-                    if (e.KeyData == Keys.D || e.KeyData == Keys.Right)
-                    {
-                        if (snake.HeadsTo == Directions.Right)
-                            return;
-                        GameHandle.ChangeDirection(Directions.Right);
-                    }//////////////////////////////////////////////////////
-                    if (e.KeyData == Keys.W || e.KeyData == Keys.Up)
-                    {
-                        if (snake.HeadsTo == Directions.Up)
-                            return;
-                        GameHandle.ChangeDirection(Directions.Up);
-                    }//////////////////////////////////////////////////////
-                    if (e.KeyData == Keys.S || e.KeyData == Keys.Down)
-                    {
-                        if (snake.HeadsTo == Directions.Down)
-                            return;
-                        GameHandle.ChangeDirection(Directions.Down);
-                    }
-                };
+                c.PreviewKeyDown += Preview_key_down;
+                c.KeyDown += Key_Down;
             }
         }
-        private void StartANewGame(bool Bot=false,dynamic Settings=null)
+
+        private void Preview_key_down(object sender, PreviewKeyDownEventArgs e)
+        {
+            e.IsInputKey = true;
+        }
+
+        private void Key_Down(object sender, KeyEventArgs e)
+        {
+            char ec = e.KeyData.ToString()[0];
+            BotCode.Enqueue(ec);
+            if (IsBotAlive)
+                return;
+            var snake = GameHandle.snake;
+            if (snake is null)
+                return;
+            if (e.KeyData == Keys.A || e.KeyData == Keys.Left)
+            {
+                if (snake.HeadsTo == Directions.Left)
+                    return;
+                GameHandle.ChangeDirection(Directions.Left);
+            }///////////////////////////////////////////////////
+            if (e.KeyData == Keys.D || e.KeyData == Keys.Right)
+            {
+                if (snake.HeadsTo == Directions.Right)
+                    return;
+                GameHandle.ChangeDirection(Directions.Right);
+            }//////////////////////////////////////////////////////
+            if (e.KeyData == Keys.W || e.KeyData == Keys.Up)
+            {
+                if (snake.HeadsTo == Directions.Up)
+                    return;
+                GameHandle.ChangeDirection(Directions.Up);
+            }//////////////////////////////////////////////////////
+            if (e.KeyData == Keys.S || e.KeyData == Keys.Down)
+            {
+                if (snake.HeadsTo == Directions.Down)
+                    return;
+                GameHandle.ChangeDirection(Directions.Down);
+            }
+        }
+        private void StartANewGame(bool Bot=false, dynamic Settings=null)
         {
             int width = mapUI.GetLength(0);
             int height = mapUI.GetLength(1);
@@ -112,10 +142,14 @@ namespace SnakeUI
             }
             if (!Bot)
             {
-                GameHandle.Initialize(this, map);
+                GameHandle.Initialize(this, map,new Func<int, int>[] { AddFood});
                 GameHandle.OnSnakeMoves += GameHandle_OnSnakeMoves;
                 GameHandle.OnSnakeEats += GameHandle_OnSnakeEats;
                 GameHandle.OnGameStops += GameHandle_OnGameStops;
+                GameHandle.GameFinished += (sender, e) => {
+                    Speech.SpeakAsync("You are officially, an expert");
+                    MessageBox.Show("The game has finished due to your fenomenal skillz!","Astonishing!",MessageBoxButtons.OK,MessageBoxIcon.Information);
+                };
             }
             else
             {
@@ -127,9 +161,74 @@ namespace SnakeUI
                 bot.snake.OnSnakeEats += GameHandle_OnSnakeEats;
             }
         }
+        private int AddFood(int length)
+        {
+            if (length == 1)
+            {
+                Speech.SpeakAsync("Nice start!");
+                return 1;
+            }
+            if (length == 10)
+            {
+                Speech.SpeakAsync("You have got ten points");
+                return 1;
+            }
+            if (length == 20)
+            {
+                Speech.SpeakAsync("yeepie kay ayy");
+                return 2;
+            }
+            if (length == 50)
+            {
+                Speech.SpeakAsync("nicely done, fifty points dude");
+                return 1;
+            }
+            if (length == 100)
+            {
+                Speech.SpeakAsync("you've got nice moves");
+                return 3;
+            }
+            if (length == 150)
+            {
+                Speech.SpeakAsync("an hundre and fifty points there");
+                return 2;
+            }
+            if (length == 200)
+            {
+                Speech.SpeakAsync("two hundreds points");
+                return 4;
+            }
+            if (length == 250)
+            {
+                Speech.SpeakAsync("You are on fire!");
+                return 5;
+            }
+            if (length == 300)
+            {
+                Speech.SpeakAsync("ten more food on the table");
+                return 10;
+            }
+            if (length == 375)
+            {
+                Speech.SpeakAsync("three hundred and seventy five points!");
+                return 7;
+            }
+            if (length == 450)
+            {
+                Speech.SpeakAsync("Better than pub jee right?");
+                return 12;
+            }
+            if (length == 550)
+            {
+                return 1 + 25;
+                Speech.SpeakAsync("You have insane skils there friend");
+            }
+            return 0;
+        }
 
         private void GameHandle_OnGameStops(object sender, Log e)
         {
+            MessageBox.Show("You have touched yourself! your length was: " + LengthL.Text.Substring(LengthL.Text.IndexOf(' ')), "oops?!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             for (int i = 0; i < decoyMap.Width; i++)
             {
                 for (int j = 0; j < decoyMap.Height; j++)
@@ -148,11 +247,7 @@ namespace SnakeUI
 
         private void GameHandle_OnSnakeMoves(object sender, Land e)
         {
-            if (!(sender is null))
-            {
-                Text = ((Snake.Snake)sender).Head.Location.ToString();
-                LengthL.Text = "Length: " + ((Snake.Snake)sender).Length;
-            }
+            LengthL.Text = "Length: " + ((Snake.Snake)sender).Length;
         }
 
         private void CancelGame()
@@ -289,6 +384,78 @@ namespace SnakeUI
                     Bot_Game_btn.Text = StopBotText;
             }
 
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            int tries = 0;
+            Start:
+            try
+            {
+                GameHandle.StopTheGame();
+                bot.Stop();
+            }
+            catch(Exception exc)
+            {
+                tries++;
+                if (tries < 10)
+                    goto Start;
+            }
+        }
+
+        private void Form1_KeyUp(object sender, KeyEventArgs e)
+        {
+        }
+
+        class SizedQueue<T>
+        {
+            public System.Collections.Generic.Queue<T> Value { get; private set; }
+            public int Size
+            {
+                get
+                {
+                    return size;
+                }
+                set
+                {
+                    if (size < 0)
+                        throw new ArgumentException("The size cant be less than 0!");
+                    OnSizeChanged?.Invoke(this, EventArgs.Empty);
+                    size = value;
+                }
+            }
+            public event EventHandler<T> OnEnqueued;
+            public event EventHandler<T> OnDequeued;
+            public event EventHandler OnSizeChanged;
+
+            private int size;
+
+            public SizedQueue(int size)
+            {
+                Value = new System.Collections.Generic.Queue<T>(7);
+                Size = size;
+            }
+            public void Enqueue(T item)
+            {
+                Value.Enqueue(item);
+                if (Value.Count > size)
+                    Value.Dequeue();
+                OnEnqueued?.Invoke(this, item);
+            }
+            public T Dequeue()
+            {
+                var item= Value.Dequeue();
+                OnDequeued?.Invoke(this, item);
+                return item;
+            }
+            public T Peek()
+            {
+                return Value.Peek();
+            }
+            public T[] ToArray()
+            {
+                return Value.ToArray();
+            }
         }
     }
 }
