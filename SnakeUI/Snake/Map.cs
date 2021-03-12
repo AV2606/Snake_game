@@ -198,6 +198,12 @@ namespace Snake
         public Point AddFoodAtRandom()
         {
             var lands = AllFreeLands();
+            if (lands.Length == 0)
+            {
+                Program.gamelog.AddLog("Tried to add a food but the map was full! ");
+                return new Point(-1, -1);
+                
+            }
             var land = lands[rnd.Next(lands.Length)];
             land.AddFood();
             Program.gamelog.AddLog("Added a new food at location " + land.Location.ToString());
