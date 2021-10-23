@@ -5,3 +5,10 @@ C:\Users\Amit\source\repos\SnakeUI\Snake\bin\Debug\Snake.pdb
 C:\Users\Amit\source\repos\SnakeUI\Snake\obj\Debug\Snake.exe
 C:\Users\Amit\source\repos\SnakeUI\Snake\obj\Debug\Snake.pdb
 C:\Users\Amit\source\repos\SnakeUI\Snake\obj\Debug\Snake.csprojAssemblyReference.cache
+C:\Users\avich\Desktop\העברה\repos\SnakeUI\Snake\bin\Debug\Snake.exe.config
+C:\Users\avich\Desktop\העברה\repos\SnakeUI\Snake\bin\Debug\Snake.exe
+C:\Users\avich\Desktop\העברה\repos\SnakeUI\Snake\bin\Debug\Snake.pdb
+C:\Users\avich\Desktop\העברה\repos\SnakeUI\Snake\obj\Debug\Snake.csproj.AssemblyReference.cache
+C:\Users\avich\Desktop\העברה\repos\SnakeUI\Snake\obj\Debug\Snake.csproj.CoreCompileInputs.cache
+C:\Users\avich\Desktop\העברה\repos\SnakeUI\Snake\obj\Debug\Snake.exe
+C:\Users\avich\Desktop\העברה\repos\SnakeUI\Snake\obj\Debug\Snake.pdb
